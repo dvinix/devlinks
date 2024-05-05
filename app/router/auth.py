@@ -41,7 +41,23 @@ async def register(user_data: UserRegister, db: AsyncSession=Depends(get_db)):
             detail="Email already regisetered..."
         )
     
+    # Generate unique username with retry logic
+    max_attempts = 10
+    for _ in range(max_attempts):
+        username = Users.generate_username()
+        existing_username = await db.execute(
+            select(Users).where(Users.username == username)
+        )
+        if not existing_username.scalar_one_or_none():
+            break
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to generate unique username"
+        )
+    
     new_user = Users(
+        username=username,
         email = user_data.email,
         hashed_password=hash_password(user_data.password)
 
@@ -128,7 +144,23 @@ async def firebase_login(payload: FirebaseAuthRequest, db: AsyncSession = Depend
     user = existing_user.scalar_one_or_none()
 
     if not user:
+        # Generate unique username with retry logic
+        max_attempts = 10
+        for _ in range(max_attempts):
+            username = Users.generate_username()
+            existing_username = await db.execute(
+                select(Users).where(Users.username == username)
+            )
+            if not existing_username.scalar_one_or_none():
+                break
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to generate unique username"
+            )
+        
         user = Users(
+            username=username,
             email=email,
             hashed_password=hash_password(secrets.token_urlsafe(32)),
         )

@@ -42,6 +42,7 @@ class TokenResponse(BaseModel):
 ##  JabhaScript 
 class UserResponse(BaseModel):
     id: UUID
+    username: str
     email: EmailStr
     plan: str
     is_active: bool
