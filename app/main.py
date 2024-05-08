@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from sqlalchemy import desc
-from app.router import auth, links, redirect, analytics
+from app.router import auth, links, redirect, analytics, qr
 from contextlib import asynccontextmanager
 from app.db.redis import connect_redis, disconnect_redis
 from app.db.mongo import connect_mongo, disconnect_mongo
@@ -46,6 +46,7 @@ app.add_middleware(
 
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(links.router, prefix="/links", tags=["links"])
+app.include_router(qr.router, prefix="/links", tags=["qr"])
 app.include_router(redirect.router)  
 app.include_router(analytics.router) #
 # No prefix for redirect routes, they are at the root level... 
