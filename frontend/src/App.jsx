@@ -2,7 +2,7 @@ import React from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import LandingPage from './pages/LandingPage'
 import Auth from './pages/Auth'
-import Dashboard from './pages/Dashboard'
+import { Dashboard } from './pages/Dashboard'
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -16,6 +16,8 @@ function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/auth" element={<Auth />} />
+        <Route path="/login" element={<Auth />} />
+        <Route path="/register" element={<Auth />} />
         <Route
           path="/dashboard"
           element={
