@@ -46,7 +46,8 @@ export const useAuth = () => {
       const userResponse = await api.get<UserResponse>('/auth/me');
       setUser(userResponse.data);
       
-      navigate('/dashboard');
+      // Redirect to username-based home
+      navigate(`/${userResponse.data.username}/home`);
       return data;
     } catch (err: any) {
       const message = err.response?.data?.detail || 'Login failed';
@@ -72,7 +73,8 @@ export const useAuth = () => {
       const userResponse = await api.get<UserResponse>('/auth/me');
       setUser(userResponse.data);
       
-      navigate('/dashboard');
+      // Redirect to username-based home
+      navigate(`/${userResponse.data.username}/home`);
       return data;
     } catch (err: any) {
       const message = err.response?.data?.detail || 'Firebase login failed';
