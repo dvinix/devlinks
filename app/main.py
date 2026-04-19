@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from sqlalchemy import desc
 from app.router import auth
-
+from app.router import links
 
 app = FastAPI(
     title="devlinks API",
@@ -12,7 +12,7 @@ app = FastAPI(
 )
 
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
-
+app.include_router(links.router, prefix="/links", tags=["links"])
 
 @app.get("/")
 async def root():
