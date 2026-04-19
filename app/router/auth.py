@@ -1,11 +1,10 @@
-from argon2 import hash_password
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.db.postgres import get_db
 from app.models.users import Users
 from app.schemas.user import UserRegister, UserLogin, TokenResponse, UserResponse
-from app.core.security import verify_password, create_access_token 
+from app.core.security import verify_password, create_access_token, hash_password 
 
 
 router = APIRouter() 

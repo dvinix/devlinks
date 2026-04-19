@@ -35,13 +35,13 @@ def needs_rehash(hashed_password: str) -> bool:
 
 
 def create_access_token(user_id: str) -> str:
-    expire = datetime.now(datetime.utc) + timedelta(minutes=settings.access_token_expire_minutes)
+    expire = datetime.now(timezone.utc) + timedelta(minutes=settings.access_token_expire_minutes)
 
     payload = {
         "sub": str(user_id),
         "exp": expire,
         "type": "access",
-        "iat": datetime.now(datetime.utc)
+        "iat": datetime.now(timezone.utc)
     }
 
 
