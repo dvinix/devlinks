@@ -5,9 +5,16 @@ from app.db.postgres import get_db
 from app.models.users import Users
 from app.schemas.user import UserRegister, UserLogin, TokenResponse, UserResponse
 from app.core.security import verify_password, create_access_token, hash_password 
-
+from app.core.dependencies import get_current_user
 
 router = APIRouter() 
+
+
+
+@router.get("/test")
+async def test(curr_user: Users = Depends(get_current_user)):
+    return {"message": f"Hello, {curr_user.email}!,"}
+
 
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
