@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 from sqlalchemy import desc
-from app.router import auth
-from app.router import links
+from app.router import auth, links ,redirect
 
 app = FastAPI(
     title="devlinks API",
@@ -11,8 +10,10 @@ app = FastAPI(
     redoc_url="/redoc"  
 )
 
+
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(links.router, prefix="/links", tags=["links"])
+app.include_router(redirect.router)  # No prefix for redirect routes, they are at the root level... 
 
 @app.get("/")
 async def root():
