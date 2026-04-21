@@ -3,11 +3,13 @@ from sqlalchemy import desc
 from app.router import auth, links ,redirect
 from contextlib import asynccontextmanager
 from app.db.redis import connect_redis, disconnect_redis
-
+from app.db.mongo import mongo
 
 ## lifespan function to manage startup and shutdown events for Redis connection...
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+
+    ##Redis
     await connect_redis()
     print(":) Services Connected...")
 
@@ -16,13 +18,20 @@ async def lifespan(app: FastAPI):
     await disconnect_redis()
     print(":( Services Disconnected...")
 
+    ##Mongo
+    await mongo.connect()
+
+    yield
+
+    await mongo.disconnect()
+
 
 app = FastAPI(
     title="devlinks API",
     description="URL Shortener with Analytics",   
     version="1.0.0",
     docs_url="/docs",
-    redoc_url="/redoc"  ,
+    redoc_url="/redoc",
     lifespan=lifespan
 )
 

@@ -10,6 +10,8 @@ import time
 
 router = APIRouter(tags=["redirect"])
 
+
+
 @router.get("/{slug}")
 async def redirect(
     slug: str,
@@ -41,7 +43,7 @@ async def redirect(
     await redis_client.setex(f"link:{slug}", 86400, link.original_url)
     
     elapsed = (time.perf_counter() - start) * 1000
-    print(f"REDIS MISS (PostgreSQL): {elapsed:.2f}ms - {slug} -> {link.original_url[:50]}")
+    print(f" :( REDIS MISS (PostgreSQL): {elapsed:.2f}ms - {slug} -> {link.original_url[:50]}")
     
     return RedirectResponse(url=link.original_url, status_code=307)
 
