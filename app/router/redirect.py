@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request, BackgroundTasks
 from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -8,6 +8,8 @@ from app.models.link import Link
 from datetime import datetime
 import time
 
+from app.services.analytics_service import record_click
+
 router = APIRouter(tags=["redirect"])
 
 
@@ -15,11 +17,15 @@ router = APIRouter(tags=["redirect"])
 @router.get("/{slug}")
 async def redirect(
     slug: str,
+    request: Request,
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
     redis_client = Depends(get_redis)
 ):
     start = time.perf_counter()
     
+
+
     #Try Redis cache
     cached_url = await redis_client.get(f"link:{slug}")
     if cached_url:
@@ -44,6 +50,15 @@ async def redirect(
     
     elapsed = (time.perf_counter() - start) * 1000
     print(f" :( REDIS MISS (PostgreSQL): {elapsed:.2f}ms - {slug} -> {link.original_url[:50]}")
+
+    background_tasks.add_task(
+        record_click,
+        slug,
+        request,
+        request.client.host,
+        request.headers.get("user-agent", "unknown"),  
+        request.headers.get("referer")
+    )
     
     return RedirectResponse(url=link.original_url, status_code=307)
 
