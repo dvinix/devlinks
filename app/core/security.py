@@ -56,7 +56,7 @@ def create_refresh_token(user_id:str) -> str:  ## refresh token --> to get new a
          "sub": str(user_id),
         "exp": expire,
         "type": "refresh",
-        "iat": datetime.now(datetime.utc)
+        "iat": datetime.now(timezone.utc)
     }
 
     return jwt.encode(payload, settings.secret_key, algorithm=settings.algorithm)
