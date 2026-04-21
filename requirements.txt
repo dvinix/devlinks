@@ -10,3 +10,4 @@ python-dotenv==1.1.0
 redis==7.4.0
 motor==3.7.1
 user-agents==2.2.0  
+loguru==0.7.3
