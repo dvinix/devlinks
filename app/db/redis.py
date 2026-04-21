@@ -8,25 +8,19 @@ redis_client: redis.Redis = None
 async def connect_redis():
     ## Initialize the Redis client and test the connection
     global redis_client
-    if redis_client is None:
-        redis_client = redis.Redis(
-            host=settings.redis_host,
-            port=settings.redis_port,
-            db=settings.redis_db,
-            password=settings.redis_password,
-            decode_responses=True
-        )
-        try:
-            await redis_client.ping()
-            print("Connected to Redis successfully!")
-        except Exception as e:
-            print(f"Failed to connect to Redis: {e}")
-            raise e
+    redis_client = await redis.from_url(
+        settings.redis_url,
+        encoding="utf-8",
+        decode_responses=True,
+        max_connections=20
+    )
         
 
 async def disconnect_redis():
     if redis_client:
         await redis_client.close() 
+
+
 
 def get_redis():
     return redis_client
