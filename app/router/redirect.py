@@ -31,7 +31,15 @@ async def redirect(
     if cached_url:
         elapsed = (time.perf_counter() - start) * 1000
         print(f":) REDIS HIT: {elapsed:.2f}ms - {slug} -> {cached_url[:50]}")
-        return RedirectResponse(url=cached_url, status_code=307)
+        background_tasks.add_task(
+            record_click,
+            slug,
+            request,
+            request.client.host,
+            request.headers.get("user-agent", ""),  
+            request.headers.get("referer")
+        )
+        return RedirectResponse(url=cached_url)
     
     #Cache miss - query PostgreSQL
     result = await db.execute(
@@ -51,14 +59,7 @@ async def redirect(
     elapsed = (time.perf_counter() - start) * 1000
     print(f" :( REDIS MISS (PostgreSQL): {elapsed:.2f}ms - {slug} -> {link.original_url[:50]}")
 
-    background_tasks.add_task(
-        record_click,
-        slug,
-        request,
-        request.client.host,
-        request.headers.get("user-agent", "unknown"),  
-        request.headers.get("referer")
-    )
+
     
     return RedirectResponse(url=link.original_url, status_code=307)
 
