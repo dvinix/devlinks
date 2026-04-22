@@ -27,6 +27,7 @@ async def get_link_analytics(
     if not link:
         raise HTTPException(404, "Link not found or access denied")
     
+
     # 2. Query MongoDB
     mongo_db = get_mongo_db()
     since = datetime.now(timezone.utc) - timedelta(days=days)
@@ -64,6 +65,24 @@ async def get_link_analytics(
         {"$limit": 5}
     ]
     browsers = await mongo_db.clicks.aggregate(browser_pipeline).to_list(None)
+
+    source_pipeline = [
+        {"$match": {"slug": slug}},
+        {"$group": {"_id": "$source", "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}},
+        {"$limit": 5}
+    ]
+
+    sources = await mongo_db.clicks.aggregate(source_pipeline).to_list(None)
+
+    location_pipeline = [
+        {"$match": {"slug": slug, "city": {"$ne": None}}},
+        {"$group": {"_id": {"country": "$country", "city": "$city"}, "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}},
+        {"$limit": 10}
+    ]
+    
+    locations = await mongo_db.clicks.aggregate(location_pipeline).to_list(None)
     
     return {
         "slug": slug,
@@ -71,5 +90,7 @@ async def get_link_analytics(
         "daily_clicks": daily,
         "devices": devices,
         "browsers": browsers,
+        "sources": sources,
+        "top_locations": locations,
         "period_days": days
     }
