@@ -48,23 +48,52 @@ async def create_link(
 
 
 
-@router.get("/{slug}")
-async def redirect_to_url(
+@router.get("/", response_model=list[LinkResponse])
+async def get_user_links(
+    current_user: Users = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    skip: int = 0,
+    limit: int = 100
+):
+    """Get all links for the current user"""
+    result = await db.execute(
+        select(Link)
+        .where(Link.user_id == current_user.id)
+        .order_by(Link.created_at.desc())
+        .offset(skip)
+        .limit(limit)
+    )
+    links = result.scalars().all()
+    
+    return [
+        LinkResponse(
+            id=link.id,
+            original_url=link.original_url,
+            slug=link.slug,
+            short_url=f"{settings.base_url}/{link.slug}",
+            is_active=link.is_active,
+            created_at=link.created_at
+        )
+        for link in links
+    ]
+
+
+@router.delete("/{slug}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_link(
     slug: str,
+    current_user: Users = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    
+    """Delete a link"""
     result = await db.execute(
-        select(Link).where(Link.slug == slug, Link.is_active == True)
+        select(Link).where(Link.slug == slug, Link.user_id == current_user.id)
     )
     link = result.scalar_one_or_none()
     
     if not link:
         raise HTTPException(status_code=404, detail="Link not found")
     
-    ## Check Expiration...
-    if link.expires_at and link.expires_at < datetime.now(timezone.utc):
-        raise HTTPException(status_code=410, detail="Link has expired")
+    await db.delete(link)
+    await db.commit()
     
-
-    return RedirectResponse(url=link.original_url, status_code=307)
+    return None

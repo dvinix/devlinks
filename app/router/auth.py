@@ -11,9 +11,10 @@ router = APIRouter()
 
 
 
-@router.get("/test")
-async def test(curr_user: Users = Depends(get_current_user)):
-    return {"message": f"Hello, {curr_user.email}!,"}
+@router.get("/me", response_model=UserResponse)
+async def get_current_user_info(current_user: Users = Depends(get_current_user)):
+    """Get current authenticated user information"""
+    return current_user
 
 
 
