@@ -7,6 +7,7 @@ from app.schemas.link import LinkCreate, LinkResponse
 from app.services.link_service import generate_unique_slug
 from app.core.dependencies import get_current_user
 from app.models.users import Users
+from app.core.config import settings
 from fastapi.responses import RedirectResponse
 from datetime import datetime, timezone
 from sqlalchemy import select
@@ -34,7 +35,7 @@ async def create_link(
     await db.commit()
     await db.refresh(new_link)
 
-    short_url = f"http://localhost:8000/{slug}"
+    short_url = f"{settings.base_url}/{slug}"
 
     return LinkResponse(
         id=new_link.id,

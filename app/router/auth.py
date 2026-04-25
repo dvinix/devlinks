@@ -4,7 +4,7 @@ from sqlalchemy import select
 from app.db.postgres import get_db
 from app.models.users import Users
 from app.schemas.user import UserRegister, UserLogin, TokenResponse, UserResponse
-from app.core.security import verify_password, create_access_token, hash_password 
+from app.core.security import verify_password, create_access_token, create_refresh_token, hash_password 
 from app.core.dependencies import get_current_user
 
 router = APIRouter() 
@@ -67,11 +67,11 @@ async def login(user_data: UserLogin, db: AsyncSession=Depends(get_db)):
     
 
     access_token = create_access_token(str(user.id))
-    refresh_token = create_access_token(str(user.id))
+    refresh_token = create_refresh_token(str(user.id))
 
 
     return {
-        "acsess_token": access_token,
+        "access_token": access_token,
         "refresh_token": refresh_token,
         "token_type": "bearer"
     }
