@@ -1,9 +1,13 @@
 from fastapi import FastAPI
 from sqlalchemy import desc
-from app.router import auth, links ,redirect, analytics
+from app.router import auth, links, redirect, analytics
 from contextlib import asynccontextmanager
 from app.db.redis import connect_redis, disconnect_redis
 from app.db.mongo import connect_mongo, disconnect_mongo
+from fastapi.middleware.cors import CORSMiddleware
+from app.core.config import settings
+
+
 
 ## lifespan function to manage startup and shutdown events for Redis connection...
 @asynccontextmanager
@@ -30,7 +34,14 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins_list,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
