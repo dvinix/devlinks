@@ -20,7 +20,7 @@
 
 ## 🌟 Features
 
-### 🔗 Link Management
+### 🔗 Link Management System
 - ✅ Create shortened URLs instantly
 - ✅ Custom slugs support
 - ✅ Expiring links with countdown
