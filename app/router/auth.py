@@ -1,13 +1,22 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+import secrets
+from firebase_admin._auth_utils import InvalidIdTokenError
 from app.db.postgres import get_db
 from app.models.users import Users
-from app.schemas.user import UserRegister, UserLogin, TokenResponse, UserResponse
+from app.schemas.user import FirebaseAuthRequest, UserRegister, UserLogin, TokenResponse, UserResponse
 from app.core.security import verify_password, create_access_token, create_refresh_token, hash_password 
 from app.core.dependencies import get_current_user
+from app.core.firebase_auth import verify_firebase_id_token
 
 router = APIRouter() 
+
+
+def _create_token_response(user_id: str) -> TokenResponse:
+    access_token = create_access_token(user_id)
+    refresh_token = create_refresh_token(user_id)
+    return TokenResponse(access_token=access_token, refresh_token=refresh_token, token_type="bearer")
 
 
 
@@ -67,13 +76,57 @@ async def login(user_data: UserLogin, db: AsyncSession=Depends(get_db)):
         )
     
 
-    access_token = create_access_token(str(user.id))
-    refresh_token = create_refresh_token(str(user.id))
+    return _create_token_response(str(user.id))
 
 
-    return {
-        "access_token": access_token,
-        "refresh_token": refresh_token,
-        "token_type": "bearer"
-    }
+@router.post("/firebase", response_model=TokenResponse)
+async def firebase_login(payload: FirebaseAuthRequest, db: AsyncSession = Depends(get_db)):
+    try:
+        decoded = verify_firebase_id_token(payload.id_token)
+    except RuntimeError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=str(exc),
+        )
+    except InvalidIdTokenError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(exc),
+        )
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid Firebase ID token",
+        )
+
+    email = decoded.get("email")
+    email_verified = decoded.get("email_verified", False)
+
+    if not email or not email_verified:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Firebase email is missing or not verified",
+        )
+
+    existing_user = await db.execute(
+        select(Users).where(Users.email == email)
+    )
+    user = existing_user.scalar_one_or_none()
+
+    if not user:
+        user = Users(
+            email=email,
+            hashed_password=hash_password(secrets.token_urlsafe(32)),
+        )
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
+
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User account is inactive",
+        )
+
+    return _create_token_response(str(user.id))
     

@@ -24,6 +24,10 @@ class UserLogin(BaseModel):
     password: str
 
 
+class FirebaseAuthRequest(BaseModel):
+    id_token: str
+
+
 
 ## Token milega login krne ke baad...
 class TokenResponse(BaseModel):

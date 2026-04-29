@@ -17,6 +17,12 @@ class Settings(BaseSettings):
     secret_key: str = Field(alias="SECRET_KEY", min_length=32)
     algorithm: str = Field(default="HS256", alias="ALGORITHM")
 
+    # Firebase Admin SDK
+    firebase_project_id: str = Field(default="", alias="FIREBASE_PROJECT_ID")
+    firebase_client_email: str = Field(default="", alias="FIREBASE_CLIENT_EMAIL")
+    firebase_private_key: str = Field(default="", alias="FIREBASE_PRIVATE_KEY")
+    firebase_service_account_json: str = Field(default="", alias="FIREBASE_SERVICE_ACCOUNT_JSON")
+
     # Token expiration
     access_token_expire_minutes: int = Field(default=30, alias="ACCESS_TOKEN_EXPIRE_MINUTES")
     refresh_token_expire_days: int = Field(default=7, alias="REFRESH_TOKEN_EXPIRE_DAYS")

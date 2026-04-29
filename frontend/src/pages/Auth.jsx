@@ -3,6 +3,13 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Mail, Lock, Eye, EyeOff, Loader2, CheckCircle2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
+import {
+  createUserWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+} from 'firebase/auth'
+import { firebaseAuth } from '../lib/firebase'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
@@ -10,6 +17,7 @@ const Auth = () => {
   const [isLogin, setIsLogin] = useState(true)
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const navigate = useNavigate()
@@ -26,23 +34,52 @@ const Auth = () => {
     setLoading(true)
 
     try {
-      const endpoint = isLogin ? '/auth/login' : '/auth/register'
-      const response = await axios.post(`${API_URL}${endpoint}`, formData)
+      const credential = isLogin
+        ? await signInWithEmailAndPassword(firebaseAuth, formData.email, formData.password)
+        : await createUserWithEmailAndPassword(firebaseAuth, formData.email, formData.password)
 
-      if (isLogin) {
-        // Store tokens
-        localStorage.setItem('access_token', response.data.access_token)
-        localStorage.setItem('refresh_token', response.data.refresh_token)
-        setSuccess('Login successful! Redirecting...')
-        setTimeout(() => navigate('/dashboard'), 1500)
-      } else {
-        setSuccess('Account created! Please login.')
-        setTimeout(() => setIsLogin(true), 2000)
-      }
+      const idToken = await credential.user.getIdToken()
+      const response = await axios.post(`${API_URL}/auth/firebase`, {
+        id_token: idToken,
+      })
+
+      localStorage.setItem('access_token', response.data.access_token)
+      localStorage.setItem('refresh_token', response.data.refresh_token)
+      setSuccess(isLogin ? 'Login successful! Redirecting...' : 'Account created! Redirecting...')
+      setTimeout(() => navigate('/dashboard'), 1500)
     } catch (err) {
-      setError(err.response?.data?.detail || 'Something went wrong')
+      const backendMessage = err.response?.data?.detail
+      const firebaseMessage = err.code?.startsWith('auth/') ? err.message : null
+      setError(backendMessage || firebaseMessage || 'Something went wrong')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleGoogleSignIn = async () => {
+    setError('')
+    setSuccess('')
+    setGoogleLoading(true)
+
+    try {
+      const provider = new GoogleAuthProvider()
+      const credential = await signInWithPopup(firebaseAuth, provider)
+      const idToken = await credential.user.getIdToken()
+
+      const response = await axios.post(`${API_URL}/auth/firebase`, {
+        id_token: idToken,
+      })
+
+      localStorage.setItem('access_token', response.data.access_token)
+      localStorage.setItem('refresh_token', response.data.refresh_token)
+      setSuccess('Google sign-in successful! Redirecting...')
+      setTimeout(() => navigate('/dashboard'), 1500)
+    } catch (err) {
+      const backendMessage = err.response?.data?.detail
+      const firebaseMessage = err.code?.startsWith('auth/') ? err.message : null
+      setError(backendMessage || firebaseMessage || 'Google sign-in failed')
+    } finally {
+      setGoogleLoading(false)
     }
   }
 
@@ -153,6 +190,30 @@ const Auth = () => {
               )}
             </motion.button>
           </form>
+
+          <div className="my-6 flex items-center gap-4 text-xs uppercase tracking-[0.35em] text-gray-500">
+            <span className="h-px flex-1 bg-white/10" />
+            <span>or</span>
+            <span className="h-px flex-1 bg-white/10" />
+          </div>
+
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            type="button"
+            onClick={handleGoogleSignIn}
+            disabled={googleLoading}
+            className="w-full py-3 rounded-lg font-semibold border border-white/20 bg-white/5 hover:bg-white/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {googleLoading ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Connecting Google...
+              </>
+            ) : (
+              <>Continue with Google</>
+            )}
+          </motion.button>
 
           {/* Toggle Auth Mode */}
           <div className="mt-6 text-center">
