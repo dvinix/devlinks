@@ -5,7 +5,7 @@ from sqlalchemy import select
 from app.db.postgres import get_db
 from app.db.redis import get_redis
 from app.models.link import Link
-from datetime import datetime
+from datetime import datetime, timezone
 import time
 
 from app.services.analytics_service import record_click
@@ -50,8 +50,15 @@ async def redirect(
     if not link:
         raise HTTPException(status_code=404, detail="Link not found")
     
-    if link.expires_at and link.expires_at < datetime.utcnow():
-        raise HTTPException(status_code=410, detail="Link has expired")
+    if link.expires_at:
+        exp = link.expires_at
+        if exp.tzinfo is None:
+            exp = exp.replace(tzinfo=timezone.utc)
+        else:
+            exp = exp.astimezone(timezone.utc)
+
+        if exp < datetime.now(timezone.utc):
+            raise HTTPException(status_code=410, detail="Link has expired")
     
     #Store in Redis for 24 hours
     await redis_client.setex(f"link:{slug}", 86400, link.original_url)

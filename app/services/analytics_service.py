@@ -1,5 +1,5 @@
 import hashlib
-from datetime import datetime
+from datetime import datetime, timezone
 from weakref import ref
 import httpx
 import httpx
@@ -75,7 +75,7 @@ async def record_click(slug: str, request, ip: str, user_agent: str, referer: st
 
         click_doc = {
             "slug": slug,
-            "timestamp": datetime.utcnow(),
+            "timestamp": datetime.now(timezone.utc),
             "ip_hash": ip_hash,
             "device": device,
             "browser": ua.browser.family,

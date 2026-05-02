@@ -6,7 +6,8 @@ from firebase_admin._auth_utils import InvalidIdTokenError
 from app.db.postgres import get_db
 from app.models.users import Users
 from app.schemas.user import FirebaseAuthRequest, UserRegister, UserLogin, TokenResponse, UserResponse
-from app.core.security import verify_password, create_access_token, create_refresh_token, hash_password 
+from app.schemas.user import RefreshRequest
+from app.core.security import verify_password, create_access_token, create_refresh_token, hash_password, verify_refresh_token
 from app.core.dependencies import get_current_user
 from app.core.firebase_auth import verify_firebase_id_token
 
@@ -77,6 +78,19 @@ async def login(user_data: UserLogin, db: AsyncSession=Depends(get_db)):
     
 
     return _create_token_response(str(user.id))
+
+
+@router.post("/refresh")
+async def refresh_token(payload: RefreshRequest):
+    user_id = verify_refresh_token(payload.refresh_token)
+    if not user_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid refresh token",
+        )
+
+    access_token = create_access_token(user_id)
+    return {"access_token": access_token}
 
 
 @router.post("/firebase", response_model=TokenResponse)

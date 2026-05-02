@@ -51,7 +51,7 @@ async def get_link_analytics(
     
     # Top devices
     device_pipeline = [
-        {"$match": {"slug": slug}},
+        {"$match": {"slug": slug, "timestamp": {"$gte": since}}},
         {"$group": {"_id": "$device", "count": {"$sum": 1}}},
         {"$sort": {"count": -1}}
     ]
@@ -59,7 +59,7 @@ async def get_link_analytics(
     
     # Top browsers
     browser_pipeline = [
-        {"$match": {"slug": slug}},
+        {"$match": {"slug": slug, "timestamp": {"$gte": since}}},
         {"$group": {"_id": "$browser", "count": {"$sum": 1}}},
         {"$sort": {"count": -1}},
         {"$limit": 5}
@@ -67,8 +67,8 @@ async def get_link_analytics(
     browsers = await mongo_db.clicks.aggregate(browser_pipeline).to_list(None)
 
     source_pipeline = [
-        {"$match": {"slug": slug}},
-        {"$group": {"_id": "$source", "count": {"$sum": 1}}},
+        {"$match": {"slug": slug, "timestamp": {"$gte": since}}},
+        {"$group": {"_id": "$referrer", "count": {"$sum": 1}}},
         {"$sort": {"count": -1}},
         {"$limit": 5}
     ]
@@ -76,7 +76,7 @@ async def get_link_analytics(
     sources = await mongo_db.clicks.aggregate(source_pipeline).to_list(None)
 
     location_pipeline = [
-        {"$match": {"slug": slug, "city": {"$ne": None}}},
+        {"$match": {"slug": slug, "timestamp": {"$gte": since}, "city": {"$ne": None}}},
         {"$group": {"_id": {"country": "$country", "city": "$city"}, "count": {"$sum": 1}}},
         {"$sort": {"count": -1}},
         {"$limit": 10}

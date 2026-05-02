@@ -11,24 +11,77 @@ from app.core.config import settings
 from fastapi.responses import RedirectResponse
 from datetime import datetime, timezone
 from sqlalchemy import select
+import re
 
 router = APIRouter()
 
 
+# Accept both `/links` and `/links/` (otherwise `/links` gets captured by `/{slug}` redirect route)
+@router.post("", response_model=LinkResponse, status_code=status.HTTP_201_CREATED)
 @router.post("/", response_model=LinkResponse, status_code=status.HTTP_201_CREATED)
 async def create_link(
     link_data: LinkCreate,
     current_user: Users = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    slug = await generate_unique_slug(db)
+    RESERVED_SLUGS = {
+        "auth",
+        "links",
+        "analytics",
+        "docs",
+        "redoc",
+        "openapi.json",
+        "health",
+    }
+
+    slug: str
+    is_custom = False
+
+    if link_data.custom_slug:
+        candidate = link_data.custom_slug.strip()
+        if not re.fullmatch(r"[A-Za-z0-9_-]{3,32}", candidate):
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="custom_slug must be 3-32 chars and only use letters, numbers, '_' or '-'",
+            )
+        if candidate.lower() in RESERVED_SLUGS:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="custom_slug is reserved",
+            )
+
+        exists = await db.execute(select(Link).where(Link.slug == candidate))
+        if exists.scalar_one_or_none():
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="custom_slug is already taken",
+            )
+
+        slug = candidate
+        is_custom = True
+    else:
+        slug = await generate_unique_slug(db)
+
+    expires_at = link_data.expires_at
+    if expires_at:
+        # Frontend `datetime-local` sends no timezone; treat it as UTC to avoid accidental instant-expiry.
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+        else:
+            expires_at = expires_at.astimezone(timezone.utc)
+
+        if expires_at <= datetime.now(timezone.utc):
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="expires_at must be in the future",
+            )
 
     new_link = Link(
         user_id=current_user.id,
         original_url=str(link_data.original_url),
         slug=slug,
-        is_custom_slug = False,
-        expires_at=link_data.expires_at
+        is_custom_slug=is_custom,
+        expires_at=expires_at
     )
 
     db.add(new_link)
@@ -48,6 +101,7 @@ async def create_link(
 
 
 
+@router.get("", response_model=list[LinkResponse])
 @router.get("/", response_model=list[LinkResponse])
 async def get_user_links(
     current_user: Users = Depends(get_current_user),

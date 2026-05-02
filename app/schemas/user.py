@@ -28,6 +28,10 @@ class FirebaseAuthRequest(BaseModel):
     id_token: str
 
 
+class RefreshRequest(BaseModel):
+    refresh_token: str
+
+
 
 ## Token milega login krne ke baad...
 class TokenResponse(BaseModel):
