@@ -44,20 +44,20 @@ const CreateLinkModal = ({ onClose, onSuccess }) => {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+          className="absolute inset-0 bg-black/50"
         />
 
         {/* Modal */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.9, y: 20 }}
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.9, y: 20 }}
-          className="relative glass-card p-8 w-full max-w-lg"
+          exit={{ opacity: 0, scale: 0.95, y: 20 }}
+          className="relative bg-white rounded-lg shadow-xl p-6 w-full max-w-lg border border-gray-200"
         >
           {/* Close Button */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 hover:bg-white/10 rounded-lg transition-colors"
+            className="absolute top-4 right-4 p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -65,12 +65,12 @@ const CreateLinkModal = ({ onClose, onSuccess }) => {
           {/* Header */}
           <div className="mb-6">
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-gradient-to-r from-violet-600 to-cyan-500 rounded-lg">
-                <Link2 className="w-5 h-5" />
+              <div className="p-2 bg-gray-100 rounded-md border border-gray-200">
+                <Link2 className="w-5 h-5 text-gray-600" />
               </div>
-              <h2 className="text-2xl font-bold">Create Short Link</h2>
+              <h2 className="text-xl font-semibold text-gray-900">Create Short Link</h2>
             </div>
-            <p className="text-gray-400">Enter a URL to shorten and track</p>
+            <p className="text-sm text-gray-600">Enter a URL to shorten and track</p>
           </div>
 
           {/* Success State */}
@@ -80,9 +80,9 @@ const CreateLinkModal = ({ onClose, onSuccess }) => {
               animate={{ opacity: 1, scale: 1 }}
               className="text-center py-8"
             >
-              <CheckCircle2 className="w-16 h-16 text-green-400 mx-auto mb-4" />
-              <h3 className="text-xl font-bold mb-2">Link Created!</h3>
-              <p className="text-gray-400">Redirecting to dashboard...</p>
+              <CheckCircle2 className="w-16 h-16 text-green-600 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Link Created!</h3>
+              <p className="text-sm text-gray-600">Redirecting to dashboard...</p>
             </motion.div>
           ) : (
             <form onSubmit={handleSubmit}>
@@ -91,7 +91,7 @@ const CreateLinkModal = ({ onClose, onSuccess }) => {
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mb-4 p-3 bg-red-500/10 border border-red-500/50 rounded-lg text-red-400 text-sm"
+                  className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm"
                 >
                   {error}
                 </motion.div>
@@ -99,14 +99,14 @@ const CreateLinkModal = ({ onClose, onSuccess }) => {
 
               {/* URL Input */}
               <div className="mb-6">
-                <label className="block text-sm font-medium mb-2">Original URL</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Original URL</label>
                 <input
                   type="url"
                   required
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
                   placeholder="https://example.com/your-long-url"
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-violet-500 focus:outline-none transition-colors"
+                  className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none transition-colors"
                 />
               </div>
 
@@ -115,26 +115,24 @@ const CreateLinkModal = ({ onClose, onSuccess }) => {
                 <button
                   type="button"
                   onClick={onClose}
-                  className="flex-1 px-6 py-3 bg-white/10 hover:bg-white/20 rounded-lg font-semibold transition-colors"
+                  className="flex-1 px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-50 transition-colors"
                 >
                   Cancel
                 </button>
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                <button
                   type="submit"
                   disabled={loading}
-                  className="flex-1 px-6 py-3 bg-gradient-to-r from-violet-600 to-cyan-500 rounded-lg font-semibold hover:shadow-lg hover:shadow-violet-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-md hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {loading ? (
                     <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <Loader2 className="w-4 h-4 animate-spin" />
                       Creating...
                     </>
                   ) : (
                     'Create Link'
                   )}
-                </motion.button>
+                </button>
               </div>
             </form>
           )}

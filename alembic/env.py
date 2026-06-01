@@ -1,10 +1,17 @@
 import asyncio
+import sys
+import os
+from pathlib import Path
 from logging.config import fileConfig
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 from alembic import context
 
+# Add the project root to Python path
+project_root = str(Path(__file__).resolve().parent.parent)
+sys.path.insert(0, project_root)
+os.chdir(project_root)
 
 from app.db.postgres import Base
 from app.models import link, users  
