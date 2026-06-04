@@ -1,18 +1,19 @@
-import { create } from 'zustand';
-import { UserResponse, AuthTokens } from '../types';
+import { create } from 'zustand'
+import { UserResponse, AuthTokens } from '../types'
+import storage from '../lib/storage'
 
 interface AuthStore {
-  user: UserResponse | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
+  user: UserResponse | null
+  isAuthenticated: boolean
+  isLoading: boolean
   
-  setUser: (user: UserResponse | null) => void;
-  setIsAuthenticated: (authenticated: boolean) => void;
-  setIsLoading: (loading: boolean) => void;
-  logout: () => void;
+  setUser: (user: UserResponse | null) => void
+  setIsAuthenticated: (authenticated: boolean) => void
+  setIsLoading: (loading: boolean) => void
+  logout: () => void
   
   // Initialize from localStorage on app load
-  initializeAuth: () => void;
+  initializeAuth: () => void
 }
 
 export const useAuthStore = create<AuthStore>((set) => ({
@@ -25,18 +26,17 @@ export const useAuthStore = create<AuthStore>((set) => ({
   setIsLoading: (loading) => set({ isLoading: loading }),
 
   logout: () => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    set({ user: null, isAuthenticated: false });
+    storage.clearTokens()
+    set({ user: null, isAuthenticated: false })
   },
 
   initializeAuth: () => {
-    const token = localStorage.getItem('access_token');
+    const token = storage.getAccessToken()
     if (token) {
-      set({ isAuthenticated: true });
+      set({ isAuthenticated: true })
     } else {
-      set({ isAuthenticated: false });
+      set({ isAuthenticated: false })
     }
-    set({ isLoading: false });
+    set({ isLoading: false })
   },
-}));
+}))

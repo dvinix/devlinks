@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
 import { useAuth } from './hooks/useAuth';
 import LandingPage from './pages/LandingPage';
@@ -52,4 +52,12 @@ const AppContent: React.FC = () => {
   );
 };
 
-export default AppContent;
+const App: React.FC = () => {
+  return (
+    <Router>
+      <AppContent />
+    </Router>
+  );
+};
+
+export default App;

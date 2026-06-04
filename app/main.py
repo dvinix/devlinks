@@ -1,11 +1,9 @@
 from fastapi import FastAPI
-from sqlalchemy import desc
-from app.router import auth, links, redirect, analytics, qr
 from contextlib import asynccontextmanager
+from app.router import auth, links, redirect, analytics, qr
 from app.db.redis import connect_redis, disconnect_redis
 from app.db.mongo import connect_mongo, disconnect_mongo
-from fastapi.middleware.cors import CORSMiddleware
-from app.core.config import settings
+from app.middleware import setup_cors
 
 
 
@@ -34,14 +32,8 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.cors_origins_list,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# Setup CORS middleware
+setup_cors(app)
 
 
 app.include_router(auth.router, prefix="/auth", tags=["auth"])

@@ -19,6 +19,18 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
-    minify: 'terser'
+    minify: 'terser',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor': ['react', 'react-dom', 'react-router-dom'],
+          'firebase': ['firebase', 'firebase/app', 'firebase/auth'],
+        }
+      }
+    }
+  },
+  preview: {
+    port: 3000,
+    host: true
   }
 })
