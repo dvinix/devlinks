@@ -27,7 +27,6 @@ export default defineConfig({
       output: {
         manualChunks: {
           'vendor': ['react', 'react-dom', 'react-router-dom'],
-          'firebase': ['firebase', 'firebase/app', 'firebase/auth'],
         }
       }
     }
