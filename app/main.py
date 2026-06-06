@@ -11,6 +11,15 @@ from app.core.config import settings
 ## lifespan function to manage startup and shutdown events for Redis connection...
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Test database connection
+    try:
+        from app.db.postgres import engine
+        async with engine.connect() as conn:
+            await conn.execute("SELECT 1")
+        print("✅ PostgreSQL connected")
+    except Exception as e:
+        print(f"❌ PostgreSQL connection failed: {e}")
+        raise
 
     ##Redis
     await connect_redis()
