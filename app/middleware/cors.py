@@ -10,10 +10,17 @@ def setup_cors(app: FastAPI) -> None:
     Args:
         app: FastAPI application instance
     """
+    # Get origins list from settings
+    origins = settings.cors_origins_list
+    
+    # Log CORS configuration for debugging
+    print(f"🔒 CORS enabled for origins: {origins}")
+    
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=settings.cors_origins_list,
+        allow_origins=origins,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
+        expose_headers=["*"],
     )

@@ -4,6 +4,7 @@ from app.router import auth, links, redirect, analytics, qr
 from app.db.redis import connect_redis, disconnect_redis
 from app.db.mongo import connect_mongo, disconnect_mongo
 from app.middleware import setup_cors
+from app.core.config import settings
 
 
 
@@ -32,8 +33,10 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Setup CORS middleware
+# Setup CORS middleware - MUST be added before routes
 setup_cors(app)
+
+print(f"🚀 Backend starting with BASE_URL: {settings.base_url}")
 
 
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
