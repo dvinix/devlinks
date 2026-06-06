@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     
     # CORS
     cors_origins: str = Field(
-        default="http://localhost:5173,http://localhost:3000,http://localhost:8000",
+        default="https://devlinks-delta-fawn.vercel.app",
         alias="CORS_ORIGINS"
     )
 
