@@ -29,7 +29,6 @@ class Settings(BaseSettings):
     
     # CORS
     cors_origins: str = Field(
-        default="https://devlinks-delta-fawn.vercel.app",
         alias="CORS_ORIGINS"
     )
 
