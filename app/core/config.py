@@ -25,10 +25,11 @@ class Settings(BaseSettings):
     # Application
     app_host: str = Field(default="127.0.0.1", alias="APP_HOST")
     app_port: int = Field(default=8000, alias="APP_PORT")
-    base_url: str = Field(alias="BASE_URL")
+    base_url: str = Field( alias="BASE_URL")
     
     # CORS
     cors_origins: str = Field(
+        default="https://devlinks-delta-fawn.vercel.app",
         alias="CORS_ORIGINS"
     )
 
