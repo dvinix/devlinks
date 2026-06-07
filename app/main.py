@@ -15,17 +15,17 @@ async def lifespan(app: FastAPI):
     postgres_connected = False
     try:
         from app.db.postgres import engine
+        from sqlalchemy import text
         print(f"🔍 Attempting PostgreSQL connection to: {settings.postgres_url.split('@')[1]}")
         async with engine.connect() as conn:
-            result = await conn.execute("SELECT 1")
-            await result.close()
+            result = await conn.execute(text("SELECT 1"))
+            result.close()
         print("✅ PostgreSQL connected successfully")
         postgres_connected = True
     except Exception as e:
         print(f"❌ PostgreSQL connection failed: {e}")
         print(f"⚠️  App will start but database features won't work")
         print(f"🔧 Check: POSTGRES_URL environment variable")
-        print(f"🔧 Verify: Port should be 6543 (not 5432)")
         # Don't raise - let app start anyway
 
     ##Redis
@@ -107,8 +107,9 @@ async def health():
     
     # Test PostgreSQL
     try:
+        from sqlalchemy import text
         async with engine.connect() as conn:
-            await conn.execute("SELECT 1")
+            await conn.execute(text("SELECT 1"))
         health_status["services"]["postgres"] = "healthy"
     except Exception as e:
         health_status["services"]["postgres"] = f"unhealthy: {str(e)[:100]}"
