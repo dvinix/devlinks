@@ -28,8 +28,9 @@ async def create_tables():
         
         # Verify tables exist
         async with engine.connect() as conn:
+            from sqlalchemy import text
             result = await conn.execute(
-                "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'"
+                text("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'")
             )
             tables = [row[0] for row in result]
             print(f"📋 Tables in database: {', '.join(tables)}")
