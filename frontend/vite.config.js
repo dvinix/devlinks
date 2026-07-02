@@ -4,13 +4,17 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   optimizeDeps: {
-    include: ['firebase', 'firebase/app', 'firebase/auth']
+    include: ['firebase/app', 'firebase/auth']
   },
   server: {
     port: 5173,
     strictPort: false,
     host: true,
     cors: true,
+    headers: {
+      'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
+      'Cross-Origin-Embedder-Policy': 'unsafe-none',
+    },
     proxy: {
       '/api': {
         target: process.env.VITE_API_BASE_URL || 'http://localhost:8000',

@@ -44,10 +44,26 @@ class Settings(BaseSettings):
         case_sensitive = True
         extra = "ignore"  # Ignore extra fields in .env
     
+    # Environment
+    environment: str = Field(default="development", alias="ENVIRONMENT")
+
     @property
     def cors_origins_list(self) -> list[str]:
-        """Convert comma-separated CORS origins to list."""
-        return [origin.strip() for origin in self.cors_origins.split(",")]
+        """Convert comma-separated CORS origins to list, always adding localhost in dev."""
+        origins = [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
+        
+        # Always allow localhost in non-production environments
+        if self.environment != "production":
+            local_origins = [
+                "http://localhost:5173",
+                "http://localhost:3000",
+                "http://127.0.0.1:5173",
+            ]
+            for o in local_origins:
+                if o not in origins:
+                    origins.append(o)
+        
+        return origins
 
 
 settings = Settings()
